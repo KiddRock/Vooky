@@ -1,37 +1,72 @@
-## Welcome to GitHub Pages
 
-You can use the [editor on GitHub](https://github.com/VookyTeam/Vooky/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+<h1 align="center"> 🔗 Vooky 🔗</h1>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+<p align="center"> PocketMine proxy plugin </p>
+<br>
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+<p align="center"> ✔️Latest PocketMine API support </p>
 
-```markdown
-Syntax highlighted code block
 
-# Header 1
-## Header 2
-### Header 3
+### How to setup?
+1) Download plugin phar from releases
+2) Restart the server
+3) Use /transferserver command or Player->transfer() funcion
 
-- Bulleted
-- List
 
-1. Numbered
-2. List
+### Latest Version:
+- 1.0.0
+	- not released
 
-**Bold** and _Italic_ and `Code` text
+### Releases:
 
-[Link](url) and ![Image](src)
+- **Stable Builds:**
+
+| Version | Download (PHAR) | Download (ZIP) |
+| ------- | --------------- | -------------- |
+| 1.0.0 | was not released | was not released |
+
+<br>
+
+- **Other released versions [here](https://github.com/VookyTeam/Vooky/releases)**
+
+### API:
+
+- Transferring player using Vooky
+
+plugin.yml:
+```yaml
+name: ...
+api: ...
+depend: [Vooky]
+version: ...
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+Main class:
+```php
+/**  
+ * @param \pocketmine\Player $player  
+ * @param string $adress  
+ * @param int $port  
+ */
+public function transferPlayerUsingVooky(\pocketmine\Player $player, string $adress, int $port): void {  
+	$player->transfer($adress, $port);  
+}
+```
 
-### Jekyll Themes
+- Transferring player without Vooky
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/VookyTeam/Vooky/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Main class:
+```php
+/**  
+ * @param \pocketmine\Player $player  
+ * @param string $adress  
+ * @param int $port  
+ */
+public function transferPlayerWithoutVooky(\pocketmine\Player $player, string $adress, int $port): void {  
+	$pk = new TransferPacket;  
+	$pk->address = $adress;  
+	$pk->port = $port;  
+	$player->dataPacket($pk);  
+}
+```
