@@ -3,6 +3,7 @@
 
 use pocketmine\utils\TextFormat;
 use raklib\protocol\IncompatibleProtocolVersion;
+use raklib\protocol\OpenConnectionReply1;
 use raklib\protocol\OpenConnectionRequest1;
 use raklib\protocol\UnconnectedPing;
 use raklib\protocol\UnconnectedPong;
@@ -34,6 +35,21 @@ class ClientConnection
     {
         $this->sideConnection = $scon;
         $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+    }
+
+    public function handleUnknownPacket(string $buffer) : bool {
+        switch(ord($buffer{0})){
+            case UnconnectedPong::$ID;
+            $this->handleUnconnectedPong($buffer);
+            return true;
+            case OpenConnectionReply1::$ID;
+            //send opcr2
+            return true;
+            case IncompatibleProtocolVersion::$ID;
+            $this->handleInvalidProtocol($buffer);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -92,7 +108,7 @@ class ClientConnection
         $packet = new IncompatibleProtocolVersion();
         $packet->setBuffer($buffer);
         $packet->decode();
-      //  $this->getSideDownstream()->player->close("Incompatible protocol", TextFormat::RED . "Incompatible RakNet protocol sent to target server: " . TextFormat::YELLOW .  $packet->protocolVersion);
+        $this->getSideDownstream()->player->close("Incompatible protocol", TextFormat::RED . "Incompatible RakNet protocol sent to target server: " . TextFormat::YELLOW .  $packet->protocolVersion);
     }
 
     /**
@@ -100,9 +116,11 @@ class ClientConnection
      */
     public function sendConnectionRequest1(int $mtuSize) : void{
         $packet = new OpenConnectionRequest1();
+        $mtuSize = min(abs(100), 1492);
         $packet->mtuSize = $mtuSize;
         $packet->protocol = 6;
         $this->sideConnection->send($packet);
+        echo 'opcrequest';
 
     }
 

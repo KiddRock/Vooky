@@ -3,6 +3,7 @@
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 use Vooky\listeners\DefaultEventListener;
+use Vooky\network\ClientConnection;
 use Vooky\network\SideConnection;
 use Vooky\player\ProxiedPlayer;
 

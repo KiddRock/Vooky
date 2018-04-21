@@ -44,9 +44,11 @@ class SideConnection extends Connection
     private $connected = true;
 
     /**
-     *
-     * Connection server <=> client
-     *
+     * @var resource $socket
+     */
+    private $socket;
+
+    /**
      * SideConnection constructor.
      * @param ProxiedPlayer $player
      * @param string $ip
@@ -54,14 +56,16 @@ class SideConnection extends Connection
      */
     public function __construct(ProxiedPlayer $player, string $ip, int $port)
     {
-          //$player->forceSendEmptyChunks();
+          $player->forceSendEmptyChunks();
           $this->player = $player;
           $this->ip = $ip;
           $this->port = $port;
           $this->connection = new ClientConnection($this);
-          Server::getInstance()->getScheduler()->scheduleRepeatingTask(new BufferReader($this->connection), 1);
           $this->connection->startConnection();
+          $reader = new BufferReader($this->connection->getSocket());
+          Server::getInstance()->getScheduler()->scheduleRepeatingTask(new BufferProcessor($reader, $this->connection), 0);
     }
+
 
     /**
      * @param string $buffer
