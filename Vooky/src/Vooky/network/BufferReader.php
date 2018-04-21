@@ -1,7 +1,5 @@
 <?php namespace Vooky\network;
 
-
-
 use pocketmine\Thread;
 
 class BufferReader extends Thread {
@@ -29,9 +27,10 @@ class BufferReader extends Thread {
 
     public function run(){
         while(true){
-            echo '1';
             if(@socket_recvfrom($this->clientConnection, $buffer, 65535, 0, $address, $port) !== false){
-                $this->receivedQueue[] = $buffer;
+                if(strlen($buffer) > 1) {
+                    $this->receivedQueue[] = $buffer;
+                }
             }
         }
         parent::run();

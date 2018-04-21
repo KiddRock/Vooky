@@ -1,16 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: NewAdmin
- * Date: 21.04.2018
- * Time: 11:58
- */
 
 namespace Vooky\network;
 
-
 use pocketmine\scheduler\Task;
-use raklib\protocol\UnconnectedPong;
 
 class BufferProcessor extends Task
 {
@@ -23,6 +15,8 @@ class BufferProcessor extends Task
      * @var ClientConnection $clientConnection
      */
     private $clientConnection;
+
+    private $lastPacket = "a";
 
     /**
      * BufferProcessor constructor.
@@ -39,6 +33,10 @@ class BufferProcessor extends Task
         $packets = (array)$this->bufferReader->receivedQueue;
         if(count($packets) > 0){
             $buffer = array_shift($packets);
+            if($this->lastPacket == $buffer){
+                return;
+            }
+            $this->lastPacket = $buffer;
             $this->clientConnection->handleUnknownPacket($buffer);
             unset($this->bufferReader->receivedQueue[array_search($buffer, (array)$this->bufferReader->receivedQueue)]);
         }

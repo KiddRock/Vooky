@@ -6,6 +6,7 @@ use pocketmine\network\mcpe\protocol\FullChunkDataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
+use pocketmine\Server;
 use Vooky\network\SideConnection;
 use Vooky\utils\ServerAddress;
 
@@ -23,7 +24,7 @@ class ProxiedPlayer extends Player
     private $acceptDefaultPackages = true;
 
     /**
-     * @var LoginPacket $loginPacket
+     * @var string $loginPacket
      */
     public $loginPacket;
 
@@ -36,6 +37,7 @@ class ProxiedPlayer extends Player
     public function __construct(SourceInterface $interface, string $ip, int $port)
     {
         parent::__construct($interface, $ip, $port);
+        $this->sessionAdapter = new CustomNetworkAdapter(Server::getInstance(), $this);
     }
 
     public function disconnect() : void{

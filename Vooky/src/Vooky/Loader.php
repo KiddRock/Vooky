@@ -33,7 +33,7 @@ class Loader extends PluginBase
     public function onDisable() : void{
         foreach($this->downstreamConnections as $connection){
             $connection->close();
-            $connection->player->close(TextFormat::YELLOW . "Proxy Stopped");
+            $connection->player->close("", TextFormat::YELLOW . "Proxy Stopped");
         }
     }
 

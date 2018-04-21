@@ -2,18 +2,10 @@
 
 
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\PlayStatusPacket;
-use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
-use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\Server;
 use Vooky\player\ProxiedPlayer;
-use raklib\protocol\ConnectionRequestAccepted;
-use raklib\protocol\IncompatibleProtocolVersion;
-use raklib\protocol\OpenConnectionReply1;
-use raklib\protocol\OpenConnectionRequest1;
 use raklib\protocol\Packet;
-use raklib\protocol\UnconnectedPing;
-use raklib\protocol\UnconnectedPong;
+use Vooky\utils\ServerAddress;
 
 class SideConnection extends Connection
 {
@@ -39,14 +31,9 @@ class SideConnection extends Connection
     private $connection;
 
     /**
-     * @var bool $connected
+     * @var ServerAddress $serverAddress
      */
-    private $connected = true;
-
-    /**
-     * @var resource $socket
-     */
-    private $socket;
+    public $serverAddress;
 
     /**
      * SideConnection constructor.
@@ -56,6 +43,7 @@ class SideConnection extends Connection
      */
     public function __construct(ProxiedPlayer $player, string $ip, int $port)
     {
+          $this->serverAddress = new ServerAddress($ip, $port, 4);
           $player->forceSendEmptyChunks();
           $this->player = $player;
           $this->ip = $ip;
@@ -78,7 +66,6 @@ class SideConnection extends Connection
      * @param DataPacket $packet
      */
     public function handlePacket(DataPacket $packet){
-        //todo: handle & save data
         $this->player->dataPacket($packet);
     }
 
