@@ -31,7 +31,7 @@
 	- not released
 	
 ### TODO:
-- [x] RakNet commincation with server
+- [x] RakNet communication with server
 - [x] Handle packets from server
 - [ ] Send login to the server
 - [ ] Implement mtu size more properly
