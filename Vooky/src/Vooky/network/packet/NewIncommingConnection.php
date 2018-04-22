@@ -11,8 +11,9 @@ class NewIncommingConnection extends NewIncomingConnection
     public function encodePayload(): void
     {
         $this->putAddress($this->address);
-        //sendPingtime - sendpong time = 0
-        //todo
+        foreach($this->systemAddresses as $address){
+            $this->putAddress($address);
+        }
         $this->putLong(time());
         $this->putLong(time());
     }
