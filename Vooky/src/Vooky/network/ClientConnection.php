@@ -12,13 +12,11 @@ use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\utils\TextFormat;
 use raklib\protocol\{
-    ConnectionRequest, ConnectionRequestAccepted, Datagram, EncapsulatedPacket, NewIncomingConnection, OpenConnectionReply2, OpenConnectionRequest2, PacketReliability, UnconnectedPing, UnconnectedPong, OpenConnectionReply1, OpenConnectionRequest1, IncompatibleProtocolVersion
+    ConnectionRequest, ConnectionRequestAccepted, Datagram, EncapsulatedPacket, OpenConnectionReply2, OpenConnectionRequest2, PacketReliability, UnconnectedPing, UnconnectedPong, OpenConnectionReply1, OpenConnectionRequest1, IncompatibleProtocolVersion
 };
 use raklib\server\Session;
-use raklib\utils\InternetAddress;
 use Vooky\Loader;
 use Vooky\network\packet\NewIncommingConnection;
-use Vooky\utils\ServerAddress;
 
 class ClientConnection
 {
@@ -104,10 +102,7 @@ class ClientConnection
             $this->handleUnconnectedPong($buffer);
             return true;
             case OpenConnectionReply1::$ID;
-            $pk = new OpenConnectionReply1();
-            $pk->setBuffer($buffer);
-            $pk->decode();
-            $this->sendConnectionRequest2($pk);
+            $this->sendConnectionRequest2();
             $this->isAccepted = true;
             return true;
             case OpenConnectionReply2::$ID;
@@ -173,7 +168,7 @@ class ClientConnection
     public function handleEncapsulatedPacketRoute(EncapsulatedPacket $packet) : bool {
         if($packet->hasSplit){
             $this->handleSplit($packet);
-            return;
+            return true;
         }
         $buffer = $packet->buffer;
         $pid = ord($buffer{0});
@@ -212,6 +207,9 @@ class ClientConnection
         }
     }
 
+    /**
+     * @param DataPacket $packet
+     */
     public function handlePacket(DataPacket $packet) : void{
         $player = $this->sideConnection->player;
         switch($packet::NETWORK_ID){
@@ -374,17 +372,15 @@ class ClientConnection
      */
     public function sendConnectionRequest1a(int $mtuSize) : void{
         $packet = new OpenConnectionRequest1();
-        $packet->mtuSize = 1464;
+        $packet->mtuSize = 576;
         $packet->protocol = 8;
         $this->sideConnection->send($packet);
     }
 
-    /**
-     * @param OpenConnectionReply1 $pk
-     */
-    public function sendConnectionRequest2(OpenConnectionReply1 $pk) : void{
+
+    public function sendConnectionRequest2() : void{
         $opc = new OpenConnectionRequest2();
-        $opc->mtuSize =  1464;
+        $opc->mtuSize = 576;
         $opc->serverAddress = $this->sideConnection->serverAddress;
         $opc->clientID = $this->clientID = mt_rand(1,100);
         $opc->encode();
