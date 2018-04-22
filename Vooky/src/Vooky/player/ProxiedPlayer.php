@@ -58,7 +58,7 @@ class ProxiedPlayer extends Player
     /**
      * @return SideConnection
      */
-    public function getConnection() : SideConnection{
+    public function getConnection() : ?SideConnection{
         return $this->connection;
     }
 
