@@ -192,13 +192,22 @@ class ClientConnection
         $packet = PacketPool::getPacket($encapsulatedPacket->buffer);
         if($packet instanceof BatchPacket){
             @$packet->decode();
-            if($packet->payload !== ""){
-                foreach($packet->getPackets() as $buffer){
-                    if(!is_null(($pk = PacketPool::getPacket($buffer)))){
-                        $this->sideConnection->player->dataPacket($pk);
-                        $this->handlePacket($pk);
-                    }
+            if($packet->payload == ""){
+                return;
+            }
+            foreach($packet->getPackets() as $buf){
+                $packet = PacketPool::getPacket($buf);
+                if(is_null($packet)){
+                    return;
                 }
+
+                if(!$packet->canBeBatched()){
+                    throw new \InvalidArgumentException("Received invalid " . get_class($packet) . " inside BatchPacket");
+                }
+
+                $this->sideConnection->player->dataPacket($packet);
+                $this->handlePacket($packet);
+
             }
         }
     }
