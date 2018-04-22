@@ -169,18 +169,21 @@ class ClientConnection
         $packet = $this->sideConnection->player->loginPacket;
         $loginPacket = new LoginPacket();
         $loginPacket->setBuffer($packet);
-        $loginPacket->encode();//just do some magic
+        $loginPacket->encode();
+        $batch = new BatchPacket();
+        $batch->addPacket($loginPacket);
+        $batch->setCompressionLevel(7);
+        $batch->encode();
         $encapsulated = new EncapsulatedPacket();
-        $encapsulated->hasSplit = false;
-        $encapsulated->buffer = $loginPacket->buffer;
-        $encapsulated->reliability = 0;
+        $encapsulated->buffer = $batch->buffer;
+        $encapsulated->hasSplit = true;
+        $encapsulated->reliability = PacketReliability::UNRELIABLE;
         $datagram = new Datagram();
         $datagram->setBuffer($packet);
         $datagram->packets[] = $encapsulated;
         $datagram->seqNumber = 2;
         $datagram->encode();
         $this->sideConnection->writeBuffer($datagram->buffer);
-        echo 'Started login...' . PHP_EOL;
     }
 
 
