@@ -1,13 +1,22 @@
 <?php namespace Vooky\network;
 
 
+use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\DisconnectPacket;
+use pocketmine\network\mcpe\protocol\FullChunkDataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
+use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\protocol\PlayStatusPacket;
+use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\utils\TextFormat;
 use raklib\protocol\{
     ConnectionRequest, ConnectionRequestAccepted, Datagram, EncapsulatedPacket, NewIncomingConnection, OpenConnectionReply2, OpenConnectionRequest2, PacketReliability, UnconnectedPing, UnconnectedPong, OpenConnectionReply1, OpenConnectionRequest1, IncompatibleProtocolVersion
 };
 use raklib\server\Session;
 use raklib\utils\InternetAddress;
+use Vooky\Loader;
 use Vooky\network\packet\NewIncommingConnection;
 use Vooky\utils\ServerAddress;
 
@@ -55,20 +64,30 @@ class ClientConnection
     private $sendPongTime;
 
     /**
-     * @var InternetAddress $clientAddress
+     * @var array $splitPackets
      */
-    private $clientAddress;
-
     private $splitPackets = [];
+
+    /**
+     * @var Loader $plugin
+     */
+    private $plugin;
+
+    /**
+     * @var int $sendSeqNumber
+     */
+    private $sendSeqNumber = 2;
 
 
     /**
      * ClientConnection constructor.
-     * @param SideConnection $scon
+     * @param SideConnection $sideConnection
      */
-    public function __construct(SideConnection $scon)
+    public function __construct(SideConnection $sideConnection)
     {
-        $this->sideConnection = $scon;
+        $this->sideConnection = $sideConnection;
+        $this->plugin = Loader::getInstance();
+
         $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         socket_set_option($this->socket, SOL_SOCKET, SO_SNDBUF, 1024 * 1024 * 8);
         socket_set_option($this->socket, SOL_SOCKET, SO_RCVBUF, 1024 * 1024 * 8);
@@ -149,8 +168,9 @@ class ClientConnection
 
     /**
      * @param EncapsulatedPacket $packet
+     * @return bool
      */
-    public function handleEncapsulatedPacketRoute(EncapsulatedPacket $packet) : void{
+    public function handleEncapsulatedPacketRoute(EncapsulatedPacket $packet) : bool {
         if($packet->hasSplit){
             $this->handleSplit($packet);
             return;
@@ -160,9 +180,69 @@ class ClientConnection
         switch($pid){
             case ConnectionRequestAccepted::$ID;
             $this->handleConnectionAccepted();
+            return true;
+        }
+        $this->processBatch($packet);
+    }
+
+    /**
+     * @param EncapsulatedPacket $encapsulatedPacket
+     */
+    public function processBatch(EncapsulatedPacket $encapsulatedPacket) : void{
+        $packet = PacketPool::getPacket($encapsulatedPacket->buffer);
+        if($packet instanceof BatchPacket){
+            @$packet->decode();
+            if($packet->payload !== ""){
+                foreach($packet->getPackets() as $buffer){
+                    if(!is_null(($pk = PacketPool::getPacket($buffer)))){
+                        $this->sideConnection->player->dataPacket($pk);
+                        $this->handlePacket($pk);
+                    }
+                }
+            }
+        }
+    }
+
+    public function handlePacket(DataPacket $packet) : void{
+        $player = $this->sideConnection->player;
+        switch($packet::NETWORK_ID){
+            case SetPlayerGameTypePacket::NETWORK_ID;
+            $packet->decode();
+            $player->setGamemode($packet->gamemode);
+            case DisconnectPacket::NETWORK_ID;
+            $this->sideConnection->close();
+            $player->setConnection(null);
+            break;
+            case TransferPacket::NETWORK_ID;
+            $this->sideConnection->close();
+            $player->setConnection(null);
+            $packet->decode();
+            $this->plugin->addSideConnection($player, $packet->address, $packet->port);
+            //this may be bit longer than normal transfer
             break;
         }
+    }
 
+    /**
+     * @param DataPacket $packet
+     */
+    public function sendClientPacket(DataPacket $packet) : void{
+        if(!$packet->isEncoded){
+            $packet->encode();
+        }
+        $batch = new BatchPacket();
+        $batch->addPacket($packet);
+        $batch->setCompressionLevel($this->plugin->getBatchCompressionLevel());
+        $batch->encode();
+        $encapsulated = new EncapsulatedPacket();
+        $encapsulated->buffer = $batch->buffer;
+        $encapsulated->reliability = PacketReliability::UNRELIABLE;
+        $datagram = new Datagram();
+        $datagram->setBuffer($packet);
+        $datagram->packets[] = $encapsulated;
+        $datagram->seqNumber = $this->sendSeqNumber++;
+        $datagram->encode();
+        $this->sideConnection->writeBuffer($datagram->buffer);
     }
 
     public function sendLogin() : void{
@@ -172,7 +252,7 @@ class ClientConnection
         $loginPacket->encode();
         $batch = new BatchPacket();
         $batch->addPacket($loginPacket);
-        $batch->setCompressionLevel(7);
+        $batch->setCompressionLevel($this->plugin->getBatchCompressionLevel());
         $batch->encode();
         $encapsulated = new EncapsulatedPacket();
         $encapsulated->buffer = $batch->buffer;
@@ -195,7 +275,7 @@ class ClientConnection
       $pk->address = $serverAddress;
       $pk->encode();
       $encapsulated = new EncapsulatedPacket();
-      $encapsulated->hasSplit = false;
+      $encapsulated->hasSplit = true;
       $encapsulated->buffer = $pk->buffer;
       $encapsulated->reliability = 0;
       $datagram = new Datagram();

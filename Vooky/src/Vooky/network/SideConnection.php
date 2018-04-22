@@ -3,6 +3,7 @@
 
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\Server;
+use Vooky\Loader;
 use Vooky\player\ProxiedPlayer;
 use raklib\protocol\Packet;
 use Vooky\utils\ServerAddress;
@@ -35,6 +36,8 @@ class SideConnection extends Connection
      */
     public $serverAddress;
 
+    public $isAlive = true;
+
     /**
      * SideConnection constructor.
      * @param ProxiedPlayer $player
@@ -44,7 +47,6 @@ class SideConnection extends Connection
     public function __construct(ProxiedPlayer $player, string $ip, int $port)
     {
           $this->serverAddress = new ServerAddress($ip, $port, 4);
-        //  $player->forceSendEmptyChunks();
           $this->player = $player;
           $this->ip = $ip;
           $this->port = $port;
@@ -54,6 +56,12 @@ class SideConnection extends Connection
           Server::getInstance()->getScheduler()->scheduleRepeatingTask(new BufferProcessor($reader, $this->connection), 0);
     }
 
+    /**
+     * @return ClientConnection
+     */
+    public function getClientConnection() : ClientConnection{
+        return $this->connection;
+    }
 
     /**
      * @param string $buffer
@@ -78,10 +86,6 @@ class SideConnection extends Connection
         $this->writeBuffer($packet->buffer);
     }
 
-    public function sendDataPacket(DataPacket $packet): void
-    {
-
-    }
 
     public function close() : void{
         socket_close($this->connection->getSocket());

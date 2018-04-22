@@ -3,7 +3,6 @@
 
 use pocketmine\level\Level;
 use pocketmine\network\mcpe\protocol\FullChunkDataPacket;
-use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -29,6 +28,11 @@ class ProxiedPlayer extends Player
     public $loginPacket;
 
     /**
+     * @var SideConnection $connection
+     */
+    private $connection;
+
+    /**
      * ProxiedPlayer constructor.
      * @param SourceInterface $interface
      * @param string $ip
@@ -44,7 +48,21 @@ class ProxiedPlayer extends Player
         $this->server = null;
     }
 
-    public function forceSendEmptyChunks() {
+    /**
+     * @param SideConnection $sideConnection
+     */
+    public function setConnection(SideConnection $sideConnection){
+        $this->connection = $sideConnection;
+    }
+
+    /**
+     * @return SideConnection
+     */
+    public function getConnection() : SideConnection{
+        return $this->connection;
+    }
+
+    public function finishLogin() : void{
         foreach ($this->usedChunks as $index => $true) {
             Level::getXZ($index, $chunkX, $chunkZ);
             $pk = new FullChunkDataPacket();
@@ -54,6 +72,7 @@ class ProxiedPlayer extends Player
             $this->dataPacket($pk);
         }
     }
+
 
     /**
      * @param ServerAddress $serverAddress
