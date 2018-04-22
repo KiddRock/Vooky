@@ -6,6 +6,7 @@
 <br>
 
 <p align="center">
+    [![Chat](https://img.shields.io/badge/chat-on%20discord-7289da.svg)](https://discord.gg/PUwEzbV) 
     <a href="https://github.com/VookyTeam/Vooky/blob/master/LICENSE">
         <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="license">
     </a>
