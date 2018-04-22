@@ -44,7 +44,7 @@ class SideConnection extends Connection
     public function __construct(ProxiedPlayer $player, string $ip, int $port)
     {
           $this->serverAddress = new ServerAddress($ip, $port, 4);
-          $player->forceSendEmptyChunks();
+        //  $player->forceSendEmptyChunks();
           $this->player = $player;
           $this->ip = $ip;
           $this->port = $port;
