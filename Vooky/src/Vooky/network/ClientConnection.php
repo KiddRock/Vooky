@@ -252,28 +252,6 @@ class ClientConnection
         $this->sideConnection->writeBuffer($datagram->buffer);
     }
 
-    public function sendLogin() : void{
-        $packet = $this->sideConnection->player->loginPacket;
-        $loginPacket = new LoginPacket();
-        $loginPacket->setBuffer($packet);
-        $loginPacket->encode();
-        $batch = new BatchPacket();
-        $batch->addPacket($loginPacket);
-        $batch->setCompressionLevel($this->plugin->getBatchCompressionLevel());
-        $batch->encode();
-        $encapsulated = new EncapsulatedPacket();
-        $encapsulated->buffer = $batch->buffer;
-        $encapsulated->hasSplit = true;
-        $encapsulated->reliability = PacketReliability::UNRELIABLE;
-        $datagram = new Datagram();
-        $datagram->setBuffer($packet);
-        $datagram->packets[] = $encapsulated;
-        $datagram->seqNumber = 2;
-        $datagram->encode();
-        $this->sideConnection->writeBuffer($datagram->buffer);
-    }
-
-
     public function handleConnectionAccepted() : void{
       $pk = new NewIncommingConnection();
       $pk->sendPingTime = $this->sendPingTime;
@@ -290,7 +268,6 @@ class ClientConnection
       $datagram->packets[] = $encapsulated;
       $datagram->encode();
       $this->sideConnection->writeBuffer($datagram->buffer);
-      $this->sendLogin();
     }
 
 
