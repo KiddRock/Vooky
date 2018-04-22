@@ -6,11 +6,11 @@
 <br>
 
 <p align="center">
-    <a href="https://github.com/VookyTeam/Vooky/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="license">
-    </a>
     <a href="https://discord.gg/w9CSdVg">
         <img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg" alt="discord">
+    </a>
+    <a href="https://github.com/VookyTeam/Vooky/blob/master/LICENSE">
+        <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="license">
     </a>
     <a href="https://poggit.pmmp.io/ci/VookyTeam/Vooky/Vooky">
         <img src="https://poggit.pmmp.io/ci.shield/VookyTeam/Vooky/Vooky" alt="poggit-ci">
