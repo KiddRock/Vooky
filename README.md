@@ -66,7 +66,7 @@ public function transferPlayerUsingVooky(\pocketmine\Player $player, string $adr
 }
 ```
 
-- Transferring player without Vooky
+- Transferring player without Vooky<br>
 NOTE: 'replace-transfer' must be set to 'false' in config.yml.
 
 Main class:
