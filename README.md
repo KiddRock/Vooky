@@ -29,6 +29,12 @@
 ### Latest Version:
 - 1.0.0
 	- not released
+	
+### TODO:
+- [x] RakNet commincation with server
+- [x] Handle packets from server
+- [ ] Send login to the server
+- [ ] Implement mtu size more properly
 
 ### Releases:
 
